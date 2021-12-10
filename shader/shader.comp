@@ -1,0 +1,65 @@
+#version 450
+
+layout(std430, set=0, binding=0) buffer xs { uint a[]; };
+
+float real(vec2 cs) { return cs.x; }
+float imag(vec2 cs) { return cs.y; }
+
+float
+mod(vec2 cs) {
+    return sqrt(cs.x * cs.x + cs.y * cs.y);
+}
+
+vec2
+add(vec2 lhs, vec2 rhs) {
+    return vec2(lhs.x + rhs.x, lhs.y + rhs.y);
+}
+
+vec2
+mul(vec2 lhs, vec2 rhs) {
+    float x = lhs.x * rhs.x - lhs.y * rhs.y;
+    float y = lhs.x * rhs.y + lhs.y * rhs.x;
+    return vec2(x, y);
+}
+
+float
+pixel(float x, float y, int iterations) {
+    vec2 c = vec2(-0.4, -0.6);
+    vec2 z = vec2(x, y);
+
+    float i = 0;
+    for (; i < iterations; i++) {
+        z = add(mul(z, z), c);
+        if (mod(z) > 2) { return i; }
+    }
+    return i;
+}
+
+void main(){
+	const uint w    = gl_GlobalInvocationID.x;
+	const uint h    = gl_GlobalInvocationID.y;
+
+	const uint ws   = gl_NumWorkGroups.x;
+	const uint hs   = gl_NumWorkGroups.y;
+
+	float x  = w;
+	float xs = ws;
+
+	float y  = h;
+	float ys = hs;
+
+	x = (xs - x) / xs;
+	y = (ys - y) / ys;
+
+    float value = pixel(x, y, 1000);
+    value /= 1000;
+    value  = sqrt(value);
+
+    int r = int(255.0 * value);
+
+	const uint i = w + h * ws;
+	a[i] += (r <<  0);
+	a[i] += (0 <<  8);
+	a[i] += (0 << 16);
+	a[i] += (255 << 24);
+}
