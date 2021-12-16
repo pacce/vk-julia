@@ -23,7 +23,7 @@ main(int argc, char **argv) {
    std::size_t elements = WIDTH * HEIGHT * 4;
    std::vector<VkBuffer> buffers;
    {
-       VkBuffer buffer = vk::buffer::create(device, elements, family);
+       VkBuffer buffer = vk::buffer::create<uint8_t>(device, elements, family);
        buffers.push_back(buffer);
    }
    VkDeviceMemory memory = vk::memory::create(physical, device, buffers);
